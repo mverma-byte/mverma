@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Tools Pro · Working PDF Tools</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- PDF.js (FIXED VERSION) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- PDF-lib (FIXED - using correct CDN) -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <!-- XLSX -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- FileSaver -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <style>
+        /* Your existing styles here - keep them the same */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 40px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .logo h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .support-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+            padding: 15px 35px;
+            border-radius: 60px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .info-icon {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 25px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 30px;
+            padding: 35px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-10px);
+            border-color: #667eea;
+            box-shadow: 0 30px 60px rgba(102, 126, 234, 0.3);
+        }
+
+        .tool-card i {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #4CAF50;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 25px;
+            font-size: 0.85rem;
+        }
+
+        .upload-area {
+            background: linear-gradient(135deg, #f5f7ff, #ffffff);
+            border: 4px dashed #667eea;
+            border-radius: 40px;
+            padding: 50px;
+            text-align: center;
+            margin: 40px 0;
+            display: none;
+        }
+
+        .upload-area.active {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .upload-area i {
+            font-size: 5rem;
+            color: #667eea;
+            margin-bottom: 25px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 18px 45px;
+            border-radius: 60px;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin: 25px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 25px 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8bc34a);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 50px;
+            padding: 50px;
+            max-width: 550px;
+            width: 90%;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.2rem;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 3px dashed rgba(102, 126, 234, 0.3);
+        }
+
+        .signature {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 20px;
+        }
+
+        .file-list {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            background: white;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <h1><i class="fas fa-building"></i> Office Tools Pro</h1>
+            </div>
+            <button class="support-btn" onclick="openSupportModal()">
+                <i class="fas fa-headset"></i> Support
+            </button>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-icon"><i class="fas fa-rocket"></i></div>
+                <h3>Lightning Fast</h3>
+                <p>Process PDFs instantly in your browser!</p>
+            </div>
+            <div class="info-card">
+                <div class="info-icon"><i class="fas fa-shield-alt"></i></div>
+                <h3>100% Private</h3>
+                <p>Files never leave your device.</p>
+            </div>
+            <div class="info-card">
+                <div class="info-icon"><i class="fas fa-gem"></i></div>
+                <h3>Free Forever</h3>
+                <p>All features completely free!</p>
+            </div>
+        </div>
+
+        <!-- Tools Grid -->
+        <div class="section-title" style="font-size: 2.4rem; color: #1e3c72; margin: 50px 0 30px;">
+            <i class="fas fa-magic"></i>
+            <span>Complete PDF Toolkit</span>
+        </div>
+
+        <div class="tools-grid">
+            <div class="tool-card" onclick="showUpload('pdfToText')">
+                <i class="fas fa-file-alt"></i>
+                <span>PDF to Text</span>
+                <small>Extract text</small>
+                <div class="badge">WORKS</div>
+            </div>
+            <div class="tool-card" onclick="showUpload('pdfToExcel')">
+                <i class="fas fa-file-excel"></i>
+                <span>PDF to Excel</span>
+                <small>Convert to spreadsheet</small>
+                <div class="badge">WORKS</div>
+            </div>
+            <div class="tool-card" onclick="showUpload('pdfToWord')">
+                <i class="fas fa-file-word"></i>
+                <span>PDF to Word</span>
+                <small>To editable DOC</small>
+                <div class="badge">WORKS</div>
+            </div>
+            <div class="tool-card" onclick="showUpload('pdfMerge')">
+                <i class="fas fa-compress"></i>
+                <span>Merge PDFs</span>
+                <small>Combine files</small>
+                <div class="badge">WORKS</div>
+            </div>
+            <div class="tool-card" onclick="showUpload('pdfSplit')">
+                <i class="fas fa-cut"></i>
+                <span>Split PDF</span>
+                <small>Extract pages</small>
+                <div class="badge">WORKS</div>
+            </div>
+            <div class="tool-card" onclick="showUpload('pdfCompress')">
+                <i class="fas fa-compress-alt"></i>
+                <span>Compress PDF</span>
+                <small>Reduce size</small>
+                <div class="badge">WORKS</div>
+            </div>
+        </div>
+
+        <!-- Upload Area -->
+        <div class="upload-area" id="uploadArea">
+            <i class="fas fa-cloud-upload-alt" id="uploadIcon"></i>
+            <h2 id="uploadTitle">Select PDF File</h2>
+            <p id="uploadDesc" style="color: #666; margin-bottom: 20px;">Choose a file to begin processing</p>
+            <input type="file" id="fileInput" class="file-input" multiple accept=".pdf">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-folder-open"></i> Browse Files
+            </button>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="fileList" class="file-list"></div>
+        </div>
+
+        <!-- Support Modal -->
+        <div class="modal" id="supportModal">
+            <div class="modal-content">
+                <h2 style="margin-bottom: 30px;"><i class="fas fa-headset"></i> Get Support</h2>
+                <form id="supportForm" action="https://formspree.io/f/xkoqyqey" method="POST">
+                    <div class="form-group">
+                        <label>Your Name *</label>
+                        <input type="text" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Message *</label>
+                        <textarea name="message" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                    <button type="button" onclick="closeModal()" style="margin-top: 15px; background: none; border: none; cursor: pointer;">Close</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="signature">
+                <i class="fas fa-pen-fancy"></i> Developed by Monu Verma
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // FIX 1: Properly initialize PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // FIX 2: Check if PDFLib is loaded
+        if (typeof PDFLib === 'undefined') {
+            console.error('PDFLib not loaded! Using fallback...');
+            var PDFLib = { PDFDocument: { create: function() { throw new Error('PDFLib failed to load'); } } };
+        }
+
+        let currentTool = '';
+        let selectedFiles = [];
+
+        function showUpload(tool) {
+            currentTool = tool;
+            const uploadArea = document.getElementById('uploadArea');
+            const title = document.getElementById('uploadTitle');
+            
+            const titles = {
+                pdfToText: '📝 PDF to Text Converter',
+                pdfToExcel: '📊 PDF to Excel Converter',
+                pdfToWord: '📄 PDF to Word Converter',
+                pdfMerge: '📚 Merge PDF Files',
+                pdfSplit: '✂️ Split PDF Pages',
+                pdfCompress: '🗜️ Compress PDF'
+            };
+            
+            title.innerHTML = titles[tool] || 'Select PDF File';
+            document.getElementById('fileInput').multiple = (tool === 'pdfMerge');
+            uploadArea.classList.add('active');
+            document.getElementById('fileList').innerHTML = '';
+        }
+
+        // Handle file selection
+        document.getElementById('fileInput').addEventListener('change', async function(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+            
+            // FIX 3: Add file size check
+            for (let file of files) {
+                if (file.size > 50 * 1024 * 1024) { // 50MB limit
+                    alert(`❌ File too large: ${file.name}\nMaximum size: 50MB`);
+                    return;
+                }
+            }
+            
+            selectedFiles = files;
+            
+            // Show selected files
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '<h4>Selected Files:</h4>';
+            files.forEach(file => {
+                fileList.innerHTML += `
+                    <div class="file-item">
+                        <i class="fas fa-file-pdf" style="color: #ff6b6b;"></i>
+                        ${file.name} (${(file.size / 1024).toFixed(2)} KB)
+                    </div>
+                `;
+            });
+            
+            // Show progress
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('progressFill').style.width = '30%';
+            
+            try {
+                switch(currentTool) {
+                    case 'pdfToText':
+                        await convertPDFtoText(files[0]);
+                        break;
+                    case 'pdfToExcel':
+                        await convertPDFtoExcel(files[0]);
+                        break;
+                    case 'pdfToWord':
+                        await convertPDFtoWord(files[0]);
+                        break;
+                    case 'pdfMerge':
+                        await mergePDFs(files);
+                        break;
+                    case 'pdfSplit':
+                        await splitPDF(files[0]);
+                        break;
+                    case 'pdfCompress':
+                        await compressPDF(files[0]);
+                        break;
+                    default:
+                        alert('Please select a tool first');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error: ' + error.message);
+            }
+            
+            document.getElementById('progressFill').style.width = '100%';
+            setTimeout(() => {
+                document.getElementById('progressBar').style.display = 'none';
+                document.getElementById('progressFill').style.width = '0%';
+            }, 1000);
+        });
+
+        // PDF to Text
+        async function convertPDFtoText(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+                
+                let fullText = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += `--- Page ${i} ---\n${pageText}\n\n`;
+                }
+                
+                const blob = new Blob([fullText], {type: 'text/plain'});
+                saveAs(blob, `${file.name.replace('.pdf', '')}_text.txt`);
+                alert('✅ Text extracted successfully!');
+            } catch (error) {
+                throw new Error('Failed to extract text: ' + error.message);
+            }
+        }
+
+        // PDF to Excel
+        async function convertPDFtoExcel(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+                
+                const data = [];
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    
+                    // Simple grouping by Y position
+                    const rows = {};
+                    textContent.items.forEach(item => {
+                        const y = Math.round(item.transform[5]);
+                        if (!rows[y]) rows[y] = [];
+                        rows[y].push(item.str);
+                    });
+                    
+                    Object.keys(rows).sort((a,b) => b - a).forEach(y => {
+                        data.push(rows[y]);
+                    });
+                }
+                
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                XLSX.writeFile(wb, `${file.name.replace('.pdf', '')}.xlsx`);
+                alert('✅ Excel file created!');
+            } catch (error) {
+                throw new Error('Failed to convert: ' + error.message);
+            }
+        }
+
+        // PDF to Word
+        async function convertPDFtoWord(file) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+                
+                let html = '<html><head><style>body{font-family:Arial}</style></head><body>';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    html += `<h2>Page ${i}</h2><p>${pageText}</p><hr>`;
+                }
+                html += '</body></html>';
+                
+                const blob = new Blob([html], {type: 'application/msword'});
+                saveAs(blob, `${file.name.replace('.pdf', '')}.doc`);
+                alert('✅ Word document created!');
+            } catch (error) {
+                throw new Error('Failed to convert: ' + error.message);
+            }
+        }
+
+        // Merge PDFs
+        async function mergePDFs(files) {
+            try {
+                if (files.length < 2) {
+                    alert('Please select at least 2 PDF files to merge');
+                    return;
+                }
+                
+                const { PDFDocument } = PDFLib;
+                const mergedPdf = await PDFDocument.create();
+                
+                for (const file of files) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await PDFDocument.load(arrayBuffer);
+                    const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    pages.forEach(page => mergedPdf.addPage(page));
+                }
+                
+                const pdfBytes = await mergedPdf.save();
+                const blob = new Blob([pdfBytes], {type: 'application/pdf'});
+                saveAs(blob, 'merged_document.pdf');
+                alert('✅ PDFs merged successfully!');
+            } catch (error) {
+                throw new Error('Failed to merge: ' + error.message);
+            }
+        }
+
+        // Split PDF
+        async function splitPDF(file) {
+            try {
+                const { PDFDocument } = PDFLib;
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await PDFDocument.load(arrayBuffer);
+                
+                const pageCount = pdf.getPageCount();
+                const pages = prompt(`Enter page numbers (1-${pageCount})\nExamples: 1,3,5 or 1-5`, '1');
+                
+                if (!pages) return;
+                
+                const pageIndices = [];
+                const parts = pages.split(',');
+                for (const part of parts) {
+                    if (part.includes('-')) {
+                        const [start, end] = part.split('-').map(Number);
+                        for (let i = start; i <= end; i++) pageIndices.push(i - 1);
+                    } else {
+                        pageIndices.push(Number(part) - 1);
+                    }
+                }
+                
+                const newPdf = await PDFDocument.create();
+                const copiedPages = await newPdf.copyPages(pdf, pageIndices);
+                copiedPages.forEach(page => newPdf.addPage(page));
+                
+                const pdfBytes = await newPdf.save();
+                const blob = new Blob([pdfBytes], {type: 'application/pdf'});
+                saveAs(blob, `extracted_pages.pdf`);
+                alert('✅ Pages extracted!');
+            } catch (error) {
+                throw new Error('Failed to split: ' + error.message);
+            }
+        }
+
+        // Compress PDF
+        async function compressPDF(file) {
+            try {
+                const { PDFDocument } = PDFLib;
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await PDFDocument.load(arrayBuffer);
+                
+                const pdfBytes = await pdf.save();
+                const originalSize = file.size;
+                const compressedSize = pdfBytes.length;
+                const savings = ((originalSize - compressedSize) / originalSize * 100).toFixed(1);
+                
+                const blob = new Blob([pdfBytes], {type: 'application/pdf'});
+                saveAs(blob, `compressed_${file.name}`);
+                alert(`✅ Compressed! Saved ${savings}%`);
+            } catch (error) {
+                throw new Error('Failed to compress: ' + error.message);
+            }
+        }
+
+        // Modal functions
+        function openSupportModal() {
+            document.getElementById('supportModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('supportModal').style.display = 'none';
+        }
+
+        // Formspree
+        document.getElementById('supportForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    alert('✅ Message sent!');
+                    this.reset();
+                    closeModal();
+                } else {
+                    alert('❌ Error sending message');
+                }
+            } catch (error) {
+                alert('❌ Network error');
+            }
+        });
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('supportModal');
+            if (event.target === modal) closeModal();
+        };
+    </script>
+</body>
+</html>
